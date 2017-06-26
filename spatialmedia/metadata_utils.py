@@ -47,7 +47,10 @@ SPHERICAL_XML_CONTENTS = \
     "<GSpherical:StitchingSoftware>"\
     "Spherical Metadata Tool"\
     "</GSpherical:StitchingSoftware>"\
-    "<GSpherical:ProjectionType>equirectangular</GSpherical:ProjectionType>"
+    "<GSpherical:ProjectionType>{0}</GSpherical:ProjectionType>"
+
+SPHERICAL_XML_CONTENTS_FOV = \
+    "<GSpherical:OriginalFOV>{0}</GSpherical:OriginalFOV>"
 
 SPHERICAL_XML_CONTENTS_TOP_BOTTOM = \
     "<GSpherical:StereoMode>top-bottom</GSpherical:StereoMode>"
@@ -72,6 +75,7 @@ SPHERICAL_TAGS_LIST = [
     "Stitched",
     "StitchingSoftware",
     "ProjectionType",
+    "OriginalFOV",
     "SourceCount",
     "StereoMode",
     "InitialViewHeadingDegrees",
@@ -420,8 +424,21 @@ def inject_metadata(src, dest, metadata, console):
     console("Unknown file type")
 
 
-def generate_spherical_xml(stereo=None, crop=None):
+def generate_spherical_xml(
+        projection="equirectangular",
+        fov=None,
+        stereo=None,
+        crop=None
+    ):
     # Configure inject xml.
+    spherical_xml = SPHERICAL_XML_CONTENTS.format(projection)
+
+    if (projection == "single_fish_eye" or projection == "dual_fish_eye"):
+        if fov is None:
+            print "Error: FOV required for {0} projection".format(projection)
+            return False
+        spherical_xml += SPHERICAL_XML_CONTENTS_FOV.format(fov)
+
     additional_xml = ""
     if stereo == "top-bottom":
         additional_xml += SPHERICAL_XML_CONTENTS_TOP_BOTTOM
@@ -486,7 +503,7 @@ def generate_spherical_xml(stereo=None, crop=None):
                 cropped_offset_left_pixels, cropped_offset_top_pixels)
 
     spherical_xml = (SPHERICAL_XML_HEADER +
-                     SPHERICAL_XML_CONTENTS +
+                     spherical_xml +
                      additional_xml +
                      SPHERICAL_XML_FOOTER)
     return spherical_xml

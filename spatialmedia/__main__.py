@@ -14,7 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Spatial Media Metadata Injector 
+"""Spatial Media Metadata Injector
 
 Tool for examining and injecting spatial media metadata in MP4/MOV files.
 """
@@ -49,6 +49,27 @@ def main():
       "injects spatial media metadata into the first file specified (.mp4 or "
       ".mov) and saves the result to the second file specified")
   video_group = parser.add_argument_group("Spherical Video")
+  video_group.add_argument(
+    "-p",
+    "--projection",
+    action="store",
+    dest="projection",
+    metavar="PROJECTION",
+    choices=["equirectangular", "cubemap", "single_fish_eye", "dual_fish_eye"],
+    default="equirectangular",
+    help=
+        "projection (equirectangular | top-cubemap | single_fish_eye | \
+        dual_fish_eye)"
+  )
+  video_group.add_argument(
+    "-fov",
+    "--fov",
+    action="store",
+    dest="fov",
+    metavar="FOV",
+    default=None,
+    help="Original FOV of the single/dual_fish_eye projections"
+  )
   video_group.add_argument("-s",
                            "--stereo",
                            action="store",
@@ -85,7 +106,9 @@ def main():
       return
 
     metadata = metadata_utils.Metadata()
-    metadata.video = metadata_utils.generate_spherical_xml(args.stereo_mode,
+    metadata.video = metadata_utils.generate_spherical_xml(args.projection,
+                                                           args.fov,
+                                                           args.stereo_mode,
                                                            args.crop)
 
     if args.spatial_audio:
